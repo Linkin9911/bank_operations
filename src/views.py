@@ -1,21 +1,35 @@
 import json
+import logging
 
 from src.utils import get_currency_rates
 from src.utils import get_greeting
 from src.utils import get_stock_prices
 from src.utils import load_transactions
 
+logger = logging.getLogger(__name__)
 
-def main_page(date_input: str) -> dict:
+
+def main_page(date_input: str) -> str:
     """
     Главная функция для страницы «Главная».
+
+    Загружает данные о транзакциях, формирует приветствие,
+    агрегирует данные по картам, выбирает топ-5 транзакций,
+    получает курсы валют и цены акций.
 
     Args:
         date_input (str): Дата в формате YYYY-MM-DD HH:MM:SS.
 
     Returns:
-        dict: JSON-ответ с данными для страницы.
+        str: JSON-строка с данными для страницы, включая:
+            - greeting (str): Приветствие.
+            - cards (list): Данные по картам (последние 4 цифры, траты, кешбэк).
+            - top_transactions (list): Топ-5 последних транзакций.
+            - currency_rates (list): Курсы валют.
+            - stock_prices (list): Цены акций.
     """
+    logger.info(f"Запуск формирования главной страницы для даты: {date_input}")
+
     # Загрузка данных
     transactions = load_transactions("data/operations.xlsx")
 
@@ -48,10 +62,12 @@ def main_page(date_input: str) -> dict:
     currency_rates = get_currency_rates(settings["user_currencies"])
     stock_prices = get_stock_prices(settings["user_stocks"])
 
-    return {
+    result = {
         "greeting": greeting,
         "cards": cards_data,
         "top_transactions": top_transactions,
         "currency_rates": currency_rates,
         "stock_prices": stock_prices,
     }
+    logger.info("Главная страница сформирована успешно")
+    return json.dumps(result, ensure_ascii=False, indent=2)
